@@ -24,6 +24,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       AddUserEvent event, Emitter<UsersState> emit) async {
     final db = await provideDb();
     final usersDs = UsersDatasource(db);
-    usersDs.saveUser(event.user);
+    await usersDs.saveUser(event.user);
+    add(LoadUsersEvent());
   }
 }

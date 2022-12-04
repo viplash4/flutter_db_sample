@@ -13,63 +13,88 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController ageController = TextEditingController();
+  List<User> users = [];
+
+  @override
+  void initState() {
+    final bloc = BlocProvider.of<UsersBloc>(context);
+    bloc.add(LoadUsersEvent());
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     // BlocBuilder, BlocConsumer
     return BlocListener<UsersBloc, UsersState>(
       listener: (BuildContext context, state) {
         if (state is UsersLoadedState) {
-          print(state.users);
+          users = state.users;
+          setState(() {});
         }
       },
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: _addTestValues,
-              child: const Text('Add test users'),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                decoration: const InputDecoration.collapsed(hintText: 'Enter name'),
+                controller: nameController,
+              ),
             ),
-            ElevatedButton(
-              onPressed: _printUsers,
-              child: const Text('Print users'),
+          ),
+          Container(
+            width: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                decoration: const InputDecoration.collapsed(hintText: 'Enter age'),
+                controller: ageController,
+                keyboardType: TextInputType.number,
+              ),
             ),
-          ],
-        ),
+          ),
+          ElevatedButton(
+            onPressed: _addUser,
+            child: const Text('Add user'),
+          ),
+          Expanded(
+            child: ListView.builder(
+                itemCount: users.length,
+                itemBuilder: (BuildContext ctxt, int index) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Text(users[index].name),
+                          Text(" age: ${users[index].age.toString()}"),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+          )
+        ],
       ),
     );
   }
 
-  void _addTestValues() {
+  void _addUser() {
     final bloc = BlocProvider.of<UsersBloc>(context);
     bloc.add(
       AddUserEvent(
         User(
-          name: 'Alex',
-          age: 22,
+          name: nameController.text,
+          age: int.parse(ageController.text),
         ),
       ),
     );
-    bloc.add(
-      AddUserEvent(
-        User(
-          name: 'Ben',
-          age: 33,
-        ),
-      ),
-    );
-    bloc.add(
-      AddUserEvent(
-        User(
-          name: 'Carl',
-          age: 44,
-        ),
-      ),
-    );
-  }
-
-  void _printUsers() {
-    final bloc = BlocProvider.of<UsersBloc>(context);
-    bloc.add(LoadUsersEvent());
+    nameController.clear();
+    ageController.clear();
   }
 }
